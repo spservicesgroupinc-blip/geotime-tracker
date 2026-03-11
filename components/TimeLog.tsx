@@ -84,15 +84,15 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
                 <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
                     <div
                         className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
-                        style={{ backgroundColor: '#141414', border: '1px solid #242424' }}
+                        style={{ backgroundColor: '#1f1f1f', border: '1px solid #313131' }}
                     >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1} className="w-8 h-8" style={{ color: '#3d3d3d' }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1} className="w-8 h-8" style={{ color: '#4b4b4b' }}>
                             <circle cx="12" cy="12" r="9" />
                             <path strokeLinecap="round" d="M12 7v5l3 3" />
                         </svg>
                     </div>
                     <p className="font-medium text-cream-500">No time entries yet</p>
-                    <p className="text-sm mt-1.5" style={{ color: '#3d3d3d' }}>
+                    <p className="text-sm mt-1.5" style={{ color: '#4b4b4b' }}>
                         Select a project and clock in to start tracking.
                     </p>
                 </div>
@@ -108,9 +108,9 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
                                 <div
                                     className="px-6 py-3 flex items-center justify-between sticky top-14"
                                     style={{
-                                        backgroundColor: '#0d0d0d',
-                                        borderBottom: '1px solid #1c1c1c',
-                                        borderTop: '1px solid #1c1c1c',
+                                        backgroundColor: '#171717',
+                                        borderBottom: '1px solid #282828',
+                                        borderTop: '1px solid #282828',
                                     }}
                                 >
                                     <span className="text-sm font-semibold text-cream-300">{date}</span>
@@ -135,7 +135,7 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
                                             key={entry.id}
                                             className="group px-6 py-4 fade-up transition-colors duration-100"
                                             style={{
-                                                borderBottom: '1px solid #1c1c1c',
+                                                borderBottom: '1px solid #282828',
                                                 animationDelay: `${idx * 25}ms`,
                                             }}
                                             onMouseEnter={e => {
@@ -149,7 +149,7 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
                                                 {/* Status bar */}
                                                 <div
                                                     className="w-0.5 self-stretch rounded-full mt-0.5 flex-shrink-0"
-                                                    style={{ backgroundColor: active ? '#c9a03a' : '#2e2e2e' }}
+                                                    style={{ backgroundColor: active ? '#c9a03a' : '#3b3b3b' }}
                                                 />
 
                                                 {/* Content */}
@@ -158,8 +158,8 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
                                                         <span
                                                             className="text-xs font-medium px-2.5 py-0.5 rounded-md"
                                                             style={{
-                                                                backgroundColor: '#141414',
-                                                                border: '1px solid #2e2e2e',
+                                                                backgroundColor: '#1f1f1f',
+                                                                border: '1px solid #3b3b3b',
                                                                 color: '#857f6f',
                                                             }}
                                                         >
@@ -183,7 +183,7 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
                                                         <div className="flex items-center gap-2">
                                                             <span
                                                                 className="text-[10px] uppercase tracking-widest font-medium"
-                                                                style={{ color: '#3d3d3d', width: '16px' }}
+                                                                style={{ color: '#4b4b4b', width: '16px' }}
                                                             >
                                                                 In
                                                             </span>
@@ -198,7 +198,7 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
                                                         <div className="flex items-center gap-2">
                                                             <span
                                                                 className="text-[10px] uppercase tracking-widest font-medium"
-                                                                style={{ color: '#3d3d3d', width: '16px' }}
+                                                                style={{ color: '#4b4b4b', width: '16px' }}
                                                             >
                                                                 Out
                                                             </span>
@@ -213,7 +213,7 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
                                                                     <LocationLink location={entry.clockOutLocation} />
                                                                 </>
                                                             ) : (
-                                                                <span style={{ color: '#2e2e2e' }}>—</span>
+                                                                <span style={{ color: '#3b3b3b' }}>—</span>
                                                             )}
                                                         </div>
                                                     </div>
@@ -234,7 +234,7 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
                                                             </div>
                                                         </>
                                                     ) : (
-                                                        <div className="text-xs italic" style={{ color: '#3d3d3d' }}>
+                                                        <div className="text-xs italic" style={{ color: '#4b4b4b' }}>
                                                             Active
                                                         </div>
                                                     )}

@@ -35,7 +35,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onProfileSave }) => {
     return (
         <div
             className="min-h-screen flex items-center justify-center px-4"
-            style={{ backgroundColor: '#050505' }}
+            style={{ backgroundColor: '#0e0e0e' }}
         >
             {/* Background grid */}
             <div
@@ -72,7 +72,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onProfileSave }) => {
                             stroke="currentColor"
                             className="w-8 h-8"
                             strokeWidth={2.5}
-                            style={{ color: '#0d0d0d' }}
+                            style={{ color: '#171717' }}
                         >
                             <circle cx="12" cy="12" r="9" />
                             <path strokeLinecap="round" d="M12 7v5l3 3" />
@@ -90,8 +90,8 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onProfileSave }) => {
                 <div
                     className="rounded-2xl overflow-hidden shadow-2xl"
                     style={{
-                        backgroundColor: '#0d0d0d',
-                        border: '1px solid #242424',
+                        backgroundColor: '#171717',
+                        border: '1px solid #313131',
                     }}
                 >
                     {/* Step progress bar */}
@@ -113,7 +113,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onProfileSave }) => {
                         <div
                             style={{
                                 flex: 1,
-                                backgroundColor: '#1c1c1c',
+                                backgroundColor: '#282828',
                             }}
                         />
                     </div>
@@ -142,15 +142,15 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onProfileSave }) => {
                                         placeholder="Full name"
                                         className="w-full px-4 py-3.5 rounded-xl text-base focus:outline-none transition-all"
                                         style={{
-                                            backgroundColor: '#141414',
-                                            border: '1px solid #2e2e2e',
+                                            backgroundColor: '#1f1f1f',
+                                            border: '1px solid #3b3b3b',
                                             color: '#e8e4d8',
                                         }}
                                         onFocus={e => {
                                             (e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,160,58,0.5)';
                                         }}
                                         onBlur={e => {
-                                            (e.currentTarget as HTMLElement).style.borderColor = '#2e2e2e';
+                                            (e.currentTarget as HTMLElement).style.borderColor = '#3b3b3b';
                                         }}
                                     />
                                 </div>
@@ -171,7 +171,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onProfileSave }) => {
                                 <button
                                     type="submit"
                                     className="w-full py-3.5 rounded-xl font-display text-xl tracking-widest transition-all duration-150"
-                                    style={{ backgroundColor: '#c9a03a', color: '#0d0d0d' }}
+                                    style={{ backgroundColor: '#c9a03a', color: '#171717' }}
                                     onMouseEnter={e => {
                                         (e.currentTarget as HTMLElement).style.backgroundColor = '#dfc05e';
                                     }}
@@ -214,15 +214,15 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onProfileSave }) => {
                                             step="0.01"
                                             className="w-full pl-8 pr-4 py-3.5 rounded-xl text-base focus:outline-none transition-all"
                                             style={{
-                                                backgroundColor: '#141414',
-                                                border: '1px solid #2e2e2e',
+                                                backgroundColor: '#1f1f1f',
+                                                border: '1px solid #3b3b3b',
                                                 color: '#e8e4d8',
                                             }}
                                             onFocus={e => {
                                                 (e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,160,58,0.5)';
                                             }}
                                             onBlur={e => {
-                                                (e.currentTarget as HTMLElement).style.borderColor = '#2e2e2e';
+                                                (e.currentTarget as HTMLElement).style.borderColor = '#3b3b3b';
                                             }}
                                         />
                                     </div>
@@ -247,15 +247,15 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onProfileSave }) => {
                                         onClick={() => { setStep(1); setError(''); }}
                                         className="px-5 py-3.5 rounded-xl font-medium transition-all duration-150"
                                         style={{
-                                            border: '1px solid #2e2e2e',
+                                            border: '1px solid #3b3b3b',
                                             color: '#857f6f',
                                         }}
                                         onMouseEnter={e => {
-                                            (e.currentTarget as HTMLElement).style.borderColor = '#3d3d3d';
+                                            (e.currentTarget as HTMLElement).style.borderColor = '#4b4b4b';
                                             (e.currentTarget as HTMLElement).style.color = '#e8e4d8';
                                         }}
                                         onMouseLeave={e => {
-                                            (e.currentTarget as HTMLElement).style.borderColor = '#2e2e2e';
+                                            (e.currentTarget as HTMLElement).style.borderColor = '#3b3b3b';
                                             (e.currentTarget as HTMLElement).style.color = '#857f6f';
                                         }}
                                     >
@@ -264,7 +264,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onProfileSave }) => {
                                     <button
                                         type="submit"
                                         className="flex-1 py-3.5 rounded-xl font-display text-xl tracking-widest transition-all duration-150"
-                                        style={{ backgroundColor: '#c9a03a', color: '#0d0d0d' }}
+                                        style={{ backgroundColor: '#c9a03a', color: '#171717' }}
                                         onMouseEnter={e => {
                                             (e.currentTarget as HTMLElement).style.backgroundColor = '#dfc05e';
                                         }}
@@ -282,7 +282,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onProfileSave }) => {
 
                 <p
                     className="text-center text-xs mt-6 tracking-wide"
-                    style={{ color: '#3d3d3d' }}
+                    style={{ color: '#4b4b4b' }}
                 >
                     All data stored locally on your device.
                 </p>

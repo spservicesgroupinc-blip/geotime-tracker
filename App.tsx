@@ -159,7 +159,7 @@ const App: React.FC = () => {
                 <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#c9a03a' }}>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4" strokeWidth={2.5} style={{ color: '#0d0d0d' }}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4" strokeWidth={2.5} style={{ color: '#171717' }}>
                                 <circle cx="12" cy="12" r="9" />
                                 <path strokeLinecap="round" d="M12 7v5l3 3" />
                             </svg>
@@ -256,13 +256,13 @@ const App: React.FC = () => {
                                                 <span
                                                     onClick={(e) => { e.stopPropagation(); handleDeleteProject(p); }}
                                                     className="absolute -top-1 -right-1 w-4 h-4 rounded-full hidden group-hover:flex items-center justify-center text-[10px] cursor-pointer transition-colors"
-                                                    style={{ backgroundColor: '#3d3d3d', color: '#857f6f' }}
+                                                    style={{ backgroundColor: '#4b4b4b', color: '#857f6f' }}
                                                     onMouseEnter={e => {
                                                         (e.currentTarget as HTMLElement).style.backgroundColor = '#b84f4f';
                                                         (e.currentTarget as HTMLElement).style.color = '#f5f0e8';
                                                     }}
                                                     onMouseLeave={e => {
-                                                        (e.currentTarget as HTMLElement).style.backgroundColor = '#3d3d3d';
+                                                        (e.currentTarget as HTMLElement).style.backgroundColor = '#4b4b4b';
                                                         (e.currentTarget as HTMLElement).style.color = '#857f6f';
                                                     }}
                                                 >
@@ -295,7 +295,7 @@ const App: React.FC = () => {
                                                 type="submit"
                                                 disabled={!newProjectName.trim()}
                                                 className="px-3 py-1.5 rounded-full text-xs font-semibold disabled:opacity-40 transition-opacity"
-                                                style={{ backgroundColor: '#c9a03a', color: '#0d0d0d' }}
+                                                style={{ backgroundColor: '#c9a03a', color: '#171717' }}
                                             >
                                                 Add
                                             </button>
@@ -322,7 +322,7 @@ const App: React.FC = () => {
                                     style={
                                         isClockedIn
                                             ? { backgroundColor: '#b84f4f' }
-                                            : { backgroundColor: '#c9a03a', color: '#0d0d0d' }
+                                            : { backgroundColor: '#c9a03a', color: '#171717' }
                                     }
                                 >
                                     {isLoading ? (
