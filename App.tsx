@@ -1,28 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { UserProfile, TimeEntry, Coordinates } from './types';
 import useLocalStorage from './hooks/useLocalStorage';
 import ProfileSetup from './components/ProfileSetup';
 import TimeLog from './components/TimeLog';
 import { getCurrentPosition } from './services/locationService';
 import { generatePayReport } from './services/pdfService';
-
-const ClockIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-);
-
-const TrashIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-    </svg>
-);
-
-const DownloadIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-    </svg>
-);
 
 const App: React.FC = () => {
     const [profile, setProfile] = useLocalStorage<UserProfile | null>('user-profile', null);
@@ -31,19 +13,61 @@ const App: React.FC = () => {
 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [newProjectName, setNewProjectName] = useState('');
     const [selectedProject, setSelectedProject] = useState<string>(projects[0] || 'General');
+    const [isAddingProject, setIsAddingProject] = useState(false);
+    const [newProjectName, setNewProjectName] = useState('');
+    const [now, setNow] = useState(new Date());
+    const addInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const timer = setInterval(() => setNow(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    useEffect(() => {
+        if (isAddingProject && addInputRef.current) {
+            addInputRef.current.focus();
+        }
+    }, [isAddingProject]);
 
     const isClockedIn = useMemo(() => {
-        const lastEntry = timeEntries.length > 0 ? timeEntries[timeEntries.length - 1] : null;
-        return !!lastEntry && !lastEntry.clockOut;
+        const last = timeEntries.length > 0 ? timeEntries[timeEntries.length - 1] : null;
+        return !!last && !last.clockOut;
     }, [timeEntries]);
 
-    const currentClockedInProject = useMemo(() => {
+    const currentEntry = useMemo(() => {
         if (!isClockedIn) return null;
-        const lastEntry = timeEntries[timeEntries.length - 1];
-        return lastEntry.projectName || 'General';
+        return timeEntries[timeEntries.length - 1];
     }, [isClockedIn, timeEntries]);
+
+    const currentClockedInProject = currentEntry?.projectName || 'General';
+
+    const elapsed = useMemo(() => {
+        if (!currentEntry) return null;
+        const ms = now.getTime() - new Date(currentEntry.clockIn).getTime();
+        const h = Math.floor(ms / 3600000);
+        const m = Math.floor((ms % 3600000) / 60000);
+        const s = Math.floor((ms % 60000) / 1000);
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }, [currentEntry, now]);
+
+    const stats = useMemo(() => {
+        const today = now.toLocaleDateString();
+        let todayH = 0, totalH = 0;
+        for (const e of timeEntries) {
+            if (!e.clockOut) continue;
+            const h = (new Date(e.clockOut).getTime() - new Date(e.clockIn).getTime()) / 3600000;
+            totalH += h;
+            if (new Date(e.clockIn).toLocaleDateString() === today) todayH += h;
+        }
+        const wage = profile?.hourlyWage || 0;
+        return {
+            todayHours: todayH,
+            todayEarnings: todayH * wage,
+            totalHours: totalH,
+            totalEarnings: totalH * wage,
+        };
+    }, [timeEntries, now, profile]);
 
     const handleClockToggle = async () => {
         setIsLoading(true);
@@ -51,21 +75,21 @@ const App: React.FC = () => {
         try {
             const location: Coordinates = await getCurrentPosition();
             if (isClockedIn) {
-                const lastEntry = timeEntries[timeEntries.length - 1];
-                const updatedEntry: TimeEntry = {
-                    ...lastEntry,
+                const last = timeEntries[timeEntries.length - 1];
+                const updated: TimeEntry = {
+                    ...last,
                     clockOut: new Date().toISOString(),
                     clockOutLocation: location,
                 };
-                setTimeEntries([...timeEntries.slice(0, timeEntries.length - 1), updatedEntry]);
+                setTimeEntries([...timeEntries.slice(0, -1), updated]);
             } else {
-                const newEntry: TimeEntry = {
+                const entry: TimeEntry = {
                     id: new Date().toISOString(),
                     projectName: selectedProject,
                     clockIn: new Date().toISOString(),
                     clockInLocation: location,
                 };
-                setTimeEntries([...timeEntries, newEntry]);
+                setTimeEntries([...timeEntries, entry]);
             }
         } catch (err: any) {
             setError(err.message || 'An unexpected error occurred.');
@@ -76,16 +100,16 @@ const App: React.FC = () => {
 
     const handleSwitchJob = async () => {
         if (!isClockedIn || selectedProject === currentClockedInProject) return;
-        if (!window.confirm(`Switch from "${currentClockedInProject}" to "${selectedProject}"? This will clock you out and back in immediately.`)) return;
+        if (!window.confirm(`Switch from "${currentClockedInProject}" to "${selectedProject}"?`)) return;
         setIsLoading(true);
         setError(null);
         try {
             const location: Coordinates = await getCurrentPosition();
-            const now = new Date().toISOString();
-            const lastEntry = timeEntries[timeEntries.length - 1];
-            const closedEntry: TimeEntry = { ...lastEntry, clockOut: now, clockOutLocation: location };
-            const newEntry: TimeEntry = { id: now, projectName: selectedProject, clockIn: now, clockInLocation: location };
-            setTimeEntries([...timeEntries.slice(0, timeEntries.length - 1), closedEntry, newEntry]);
+            const ts = new Date().toISOString();
+            const last = timeEntries[timeEntries.length - 1];
+            const closed: TimeEntry = { ...last, clockOut: ts, clockOutLocation: location };
+            const next: TimeEntry = { id: ts, projectName: selectedProject, clockIn: ts, clockInLocation: location };
+            setTimeEntries([...timeEntries.slice(0, -1), closed, next]);
         } catch (err: any) {
             setError(err.message || 'Failed to switch job.');
         } finally {
@@ -93,190 +117,315 @@ const App: React.FC = () => {
         }
     };
 
+    const handleAddProject = (e: React.FormEvent) => {
+        e.preventDefault();
+        const name = newProjectName.trim();
+        if (name && !projects.includes(name)) {
+            setProjects([...projects, name]);
+            setSelectedProject(name);
+        }
+        setNewProjectName('');
+        setIsAddingProject(false);
+    };
+
+    const handleDeleteProject = (proj: string) => {
+        if (projects.length <= 1) return;
+        if (!window.confirm(`Remove project "${proj}"? Past entries keep this name.`)) return;
+        const updated = projects.filter(p => p !== proj);
+        setProjects(updated);
+        if (selectedProject === proj) setSelectedProject(updated[0]);
+    };
+
+    const handleDeleteEntry = (id: string) => {
+        setTimeEntries(timeEntries.filter(e => e.id !== id));
+    };
+
     const handleResetProfile = () => {
-        if (window.confirm('Reset your profile? All time entries will be cleared.')) {
+        if (window.confirm('Reset profile? All time entries will be cleared.')) {
             setProfile(null);
             setTimeEntries([]);
         }
     };
 
-    const handleAddProject = (e: React.FormEvent) => {
-        e.preventDefault();
-        const trimmed = newProjectName.trim();
-        if (trimmed && !projects.includes(trimmed)) {
-            setProjects([...projects, trimmed]);
-            setNewProjectName('');
-            if (projects.length === 0) setSelectedProject(trimmed);
-        }
-    };
+    if (!profile) return <ProfileSetup onProfileSave={setProfile} />;
 
-    const handleDeleteProject = (proj: string) => {
-        if (window.confirm(`Delete project "${proj}"? Past entries will retain this name.`)) {
-            const updated = projects.filter(p => p !== proj);
-            setProjects(updated);
-            if (selectedProject === proj && updated.length > 0) setSelectedProject(updated[0]);
-            else if (selectedProject === proj) setSelectedProject('General');
-        }
-    };
-
-    if (!profile) {
-        return <ProfileSetup onProfileSave={setProfile} />;
-    }
+    const timeDisplay = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const dateDisplay = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
     return (
-        <div className="min-h-screen bg-navy-950 text-slate-200">
-            <header className="bg-navy-900 border-b border-navy-700 px-4 py-4 shadow-lg">
-                <div className="container mx-auto flex items-center justify-between max-w-6xl">
-                    <h1 className="font-display text-2xl font-bold text-gold-400 tracking-wide">
-                        GeoTime Tracker
-                    </h1>
-                    <div className="flex items-center gap-4">
-                        <span className="text-sm font-medium text-slate-300">{profile.name}</span>
-                        <span className="text-slate-700 select-none">|</span>
+        <div className="min-h-screen bg-void-950 text-cream-200">
+            {/* Header */}
+            <header className="border-b border-void-700 bg-void-900/80 backdrop-blur-sm sticky top-0 z-20">
+                <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#c9a03a' }}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4" strokeWidth={2.5} style={{ color: '#0d0d0d' }}>
+                                <circle cx="12" cy="12" r="9" />
+                                <path strokeLinecap="round" d="M12 7v5l3 3" />
+                            </svg>
+                        </div>
+                        <span className="font-display text-xl tracking-widest text-cream-200">GEOTIME</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm text-cream-500">{profile.name}</span>
+                        <span className="text-void-400 select-none">·</span>
                         <button
                             onClick={handleResetProfile}
-                            className="text-xs text-slate-500 hover:text-gold-400 transition-colors duration-200 tracking-widest uppercase"
+                            className="text-xs text-void-300 hover:text-cream-300 transition-colors tracking-widest uppercase"
                         >
                             Switch Profile
                         </button>
                     </div>
                 </div>
+                <div className="gold-line opacity-40" />
             </header>
 
-            <main className="container mx-auto p-4 md:p-6 max-w-6xl">
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    <div className="space-y-5 lg:col-span-1">
+            <main className="max-w-6xl mx-auto px-4 sm:px-5 py-6">
+                <div className="flex flex-col md:flex-row gap-5">
 
-                        {/* Time Clock Card */}
-                        <div className="bg-navy-900 border border-navy-700 rounded-xl p-6 shadow-xl">
-                            <h2 className="font-display text-lg font-semibold text-gold-400 mb-5 tracking-wide">
-                                Time Clock
-                            </h2>
+                    {/* ── Left Panel ── */}
+                    <div className="md:w-80 flex-shrink-0 space-y-4">
 
-                            <div className="mb-5">
-                                <label className="block text-xs font-medium text-slate-500 uppercase tracking-widest mb-2">
+                        {/* Clock Card */}
+                        <div className="bg-void-900 border border-void-700 rounded-2xl overflow-hidden">
+
+                            {/* Status / Time display */}
+                            <div className="px-6 pt-6 pb-5 border-b border-void-700">
+                                {isClockedIn ? (
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <span
+                                                className="w-2 h-2 rounded-full flex-shrink-0 animate-pulse"
+                                                style={{ backgroundColor: '#c9a03a' }}
+                                            />
+                                            <span className="text-xs font-medium tracking-widest uppercase" style={{ color: '#c9a03a' }}>
+                                                Active — {currentClockedInProject}
+                                            </span>
+                                        </div>
+                                        <div
+                                            className="font-mono text-5xl font-semibold tracking-tight leading-none elapsed-tick"
+                                            style={{ color: '#e8e4d8' }}
+                                        >
+                                            {elapsed}
+                                        </div>
+                                        <div className="mt-2 text-sm" style={{ color: '#5a5549' }}>
+                                            Since{' '}
+                                            <span style={{ color: '#857f6f' }}>
+                                                {new Date(currentEntry!.clockIn).toLocaleTimeString([], {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                })}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <span className="w-2 h-2 rounded-full bg-void-500 flex-shrink-0" />
+                                            <span className="text-xs text-void-300 tracking-widest uppercase">
+                                                Not clocked in
+                                            </span>
+                                        </div>
+                                        <div className="font-mono text-4xl font-medium text-cream-200 tracking-tight leading-none">
+                                            {timeDisplay}
+                                        </div>
+                                        <div className="mt-1.5 text-sm text-void-300">{dateDisplay}</div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Project selector */}
+                            <div className="px-6 py-4 border-b border-void-700">
+                                <div className="text-[10px] text-void-300 uppercase tracking-widest mb-3 font-medium">
                                     {isClockedIn ? 'Switch Project' : 'Select Project'}
-                                </label>
-                                <div className="relative">
-                                    <select
-                                        value={selectedProject}
-                                        onChange={(e) => setSelectedProject(e.target.value)}
-                                        className="w-full px-3 py-2.5 bg-navy-800 border border-navy-700 text-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gold-500 focus:border-gold-500 transition-colors cursor-pointer appearance-none pr-8"
-                                    >
-                                        {projects.map(p => (
-                                            <option key={p} value={p} style={{ backgroundColor: '#161930' }}>{p}</option>
-                                        ))}
-                                    </select>
-                                    <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
-                                    </svg>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {projects.map(p => (
+                                        <button
+                                            key={p}
+                                            onClick={() => setSelectedProject(p)}
+                                            className={`group relative px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-150 ${
+                                                selectedProject === p
+                                                    ? 'text-void-950'
+                                                    : 'bg-void-800 text-cream-500 hover:bg-void-700 hover:text-cream-300'
+                                            }`}
+                                            style={selectedProject === p ? { backgroundColor: '#c9a03a' } : undefined}
+                                        >
+                                            {p}
+                                            {projects.length > 1 && (
+                                                <span
+                                                    onClick={(e) => { e.stopPropagation(); handleDeleteProject(p); }}
+                                                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full hidden group-hover:flex items-center justify-center text-[10px] cursor-pointer transition-colors"
+                                                    style={{ backgroundColor: '#3d3d3d', color: '#857f6f' }}
+                                                    onMouseEnter={e => {
+                                                        (e.currentTarget as HTMLElement).style.backgroundColor = '#b84f4f';
+                                                        (e.currentTarget as HTMLElement).style.color = '#f5f0e8';
+                                                    }}
+                                                    onMouseLeave={e => {
+                                                        (e.currentTarget as HTMLElement).style.backgroundColor = '#3d3d3d';
+                                                        (e.currentTarget as HTMLElement).style.color = '#857f6f';
+                                                    }}
+                                                >
+                                                    ×
+                                                </span>
+                                            )}
+                                        </button>
+                                    ))}
+                                    {isAddingProject ? (
+                                        <form onSubmit={handleAddProject} className="flex items-center gap-1.5">
+                                            <input
+                                                ref={addInputRef}
+                                                type="text"
+                                                value={newProjectName}
+                                                onChange={e => setNewProjectName(e.target.value)}
+                                                onBlur={() => {
+                                                    if (!newProjectName.trim()) setIsAddingProject(false);
+                                                }}
+                                                onKeyDown={e => {
+                                                    if (e.key === 'Escape') {
+                                                        setIsAddingProject(false);
+                                                        setNewProjectName('');
+                                                    }
+                                                }}
+                                                placeholder="Project name"
+                                                className="px-3 py-1.5 rounded-full text-sm bg-void-800 text-cream-200 placeholder-void-300 focus:outline-none transition-colors w-32"
+                                                style={{ border: '1px solid rgba(201,160,58,0.4)' }}
+                                            />
+                                            <button
+                                                type="submit"
+                                                disabled={!newProjectName.trim()}
+                                                className="px-3 py-1.5 rounded-full text-xs font-semibold disabled:opacity-40 transition-opacity"
+                                                style={{ backgroundColor: '#c9a03a', color: '#0d0d0d' }}
+                                            >
+                                                Add
+                                            </button>
+                                        </form>
+                                    ) : (
+                                        <button
+                                            onClick={() => setIsAddingProject(true)}
+                                            className="px-3.5 py-1.5 rounded-full text-sm text-void-300 border border-dashed border-void-500 hover:border-void-400 hover:text-cream-500 transition-all duration-150"
+                                        >
+                                            + Add
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
-                            <button
-                                onClick={handleClockToggle}
-                                disabled={isLoading}
-                                className={`w-full flex items-center justify-center px-6 py-3.5 text-base font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-navy-900 disabled:opacity-50 disabled:cursor-wait ${
-                                    isClockedIn
-                                        ? 'bg-crimson-500 hover:bg-crimson-400 text-white focus:ring-crimson-500'
-                                        : 'bg-gold-500 hover:bg-gold-400 text-navy-950 focus:ring-gold-500'
-                                }`}
-                            >
-                                <ClockIcon />
-                                {isLoading ? 'Locating...' : (isClockedIn ? 'Clock Out' : 'Clock In')}
-                            </button>
-
-                            {isClockedIn && selectedProject !== currentClockedInProject && (
+                            {/* Clock button */}
+                            <div className="p-5 space-y-3">
                                 <button
-                                    onClick={handleSwitchJob}
+                                    onClick={handleClockToggle}
                                     disabled={isLoading}
-                                    className="w-full mt-3 flex items-center justify-center px-4 py-2.5 text-sm font-medium text-steel-400 border border-steel-500/40 rounded-lg hover:bg-navy-800 hover:border-steel-400 transition-all duration-200 disabled:opacity-50"
+                                    className={`relative w-full py-5 rounded-xl font-display text-2xl tracking-widest transition-all duration-200 focus:outline-none disabled:opacity-60 ${
+                                        isClockedIn ? 'text-cream-200 clock-out-pulse' : 'clock-in-pulse'
+                                    }`}
+                                    style={
+                                        isClockedIn
+                                            ? { backgroundColor: '#b84f4f' }
+                                            : { backgroundColor: '#c9a03a', color: '#0d0d0d' }
+                                    }
                                 >
-                                    Switch to &quot;{selectedProject}&quot;
-                                </button>
-                            )}
-
-                            {isClockedIn && (
-                                <div className="mt-4 p-3.5 rounded-lg border" style={{ backgroundColor: 'rgba(28,19,7,0.6)', borderColor: 'rgba(201,160,58,0.2)' }}>
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-gold-400 animate-pulse flex-shrink-0"></span>
-                                        <p className="text-sm font-medium text-gold-300">{currentClockedInProject}</p>
-                                    </div>
-                                    <p className="text-xs text-slate-600 mt-1 ml-4">
-                                        Since {new Date(timeEntries[timeEntries.length - 1].clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </p>
-                                </div>
-                            )}
-
-                            {error && (
-                                <div className="mt-3 px-3 py-2 rounded-lg border" style={{ backgroundColor: 'rgba(28,9,9,0.6)', borderColor: 'rgba(184,79,79,0.25)' }}>
-                                    <p className="text-sm text-crimson-400">{error}</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Project Management */}
-                        <div className="bg-navy-900 border border-navy-700 rounded-xl p-6 shadow-xl">
-                            <h2 className="font-display text-lg font-semibold text-gold-400 mb-5 tracking-wide">
-                                Projects
-                            </h2>
-                            <form onSubmit={handleAddProject} className="flex gap-2 mb-4">
-                                <input
-                                    type="text"
-                                    value={newProjectName}
-                                    onChange={(e) => setNewProjectName(e.target.value)}
-                                    placeholder="New project name"
-                                    className="flex-1 min-w-0 px-3 py-2 bg-navy-800 border border-navy-700 text-slate-200 placeholder-slate-600 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gold-500 focus:border-gold-500 transition-colors"
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={!newProjectName.trim()}
-                                    className="px-4 py-2 text-sm font-medium text-slate-300 bg-navy-700 border border-navy-600 rounded-lg hover:bg-navy-600 hover:border-navy-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-gold-500"
-                                >
-                                    Add
-                                </button>
-                            </form>
-                            <ul className="divide-y divide-navy-700 max-h-48 overflow-y-auto">
-                                {projects.map(proj => (
-                                    <li key={proj} className="py-2.5 flex justify-between items-center group">
-                                        <span className={`text-sm transition-colors ${selectedProject === proj ? 'text-gold-400 font-medium' : 'text-slate-400'}`}>
-                                            {proj}
+                                    {isLoading ? (
+                                        <span className="flex items-center justify-center gap-2">
+                                            <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                                            </svg>
+                                            Locating...
                                         </span>
-                                        {projects.length > 1 && (
-                                            <button
-                                                onClick={() => handleDeleteProject(proj)}
-                                                className="text-navy-600 hover:text-crimson-400 p-1 opacity-0 group-hover:opacity-100 transition-all duration-150"
-                                                title="Delete project"
-                                            >
-                                                <TrashIcon />
-                                            </button>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
+                                    ) : isClockedIn ? '■  CLOCK OUT' : '▶  CLOCK IN'}
+                                </button>
+
+                                {isClockedIn && selectedProject !== currentClockedInProject && (
+                                    <button
+                                        onClick={handleSwitchJob}
+                                        disabled={isLoading}
+                                        className="w-full py-3 rounded-xl text-sm font-medium text-cream-400 border border-void-600 hover:border-void-400 hover:text-cream-200 transition-all duration-150 disabled:opacity-50"
+                                    >
+                                        Switch to &quot;{selectedProject}&quot;
+                                    </button>
+                                )}
+
+                                {error && (
+                                    <div
+                                        className="px-4 py-3 rounded-xl text-sm"
+                                        style={{
+                                            backgroundColor: 'rgba(184,79,79,0.1)',
+                                            border: '1px solid rgba(184,79,79,0.25)',
+                                            color: '#d46a6a',
+                                        }}
+                                    >
+                                        {error}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        {/* Reports */}
-                        <div className="bg-navy-900 border border-navy-700 rounded-xl p-6 shadow-xl">
-                            <h2 className="font-display text-lg font-semibold text-gold-400 mb-5 tracking-wide">
-                                Reports
-                            </h2>
-                            <button
-                                onClick={() => generatePayReport(profile, timeEntries)}
-                                disabled={timeEntries.length === 0}
-                                className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-medium text-gold-400 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-gold-500 disabled:opacity-30 disabled:cursor-not-allowed hover:text-gold-300"
-                                style={{ borderColor: 'rgba(201,160,58,0.35)' }}
-                                onMouseEnter={(e) => { if (timeEntries.length > 0) (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(28,19,7,0.5)'; }}
-                                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = ''; }}
-                            >
-                                <DownloadIcon />
-                                Download Pay Report
-                            </button>
+                        {/* Earnings Summary */}
+                        <div className="bg-void-900 border border-void-700 rounded-2xl p-6">
+                            <div className="text-[10px] text-void-300 uppercase tracking-widest mb-4 font-medium">
+                                Earnings Summary
+                            </div>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                                <div>
+                                    <div className="text-xs text-void-300 mb-1.5">Today</div>
+                                    <div className="font-mono text-2xl font-semibold text-cream-200 leading-none">
+                                        {stats.todayHours.toFixed(1)}
+                                        <span className="text-sm text-void-300 ml-1">h</span>
+                                    </div>
+                                    <div className="font-mono text-base font-medium mt-1" style={{ color: '#c9a03a' }}>
+                                        ${stats.todayEarnings.toFixed(2)}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="text-xs text-void-300 mb-1.5">All Time</div>
+                                    <div className="font-mono text-2xl font-semibold text-cream-200 leading-none">
+                                        {stats.totalHours.toFixed(1)}
+                                        <span className="text-sm text-void-300 ml-1">h</span>
+                                    </div>
+                                    <div className="font-mono text-base font-medium mt-1" style={{ color: '#c9a03a' }}>
+                                        ${stats.totalEarnings.toFixed(2)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="mt-4 pt-4 border-t border-void-700 text-xs text-void-300">
+                                @ ${profile.hourlyWage.toFixed(2)} / hr
+                            </div>
                         </div>
+
+                        {/* Pay Report */}
+                        <button
+                            onClick={() => generatePayReport(profile, timeEntries)}
+                            disabled={timeEntries.length === 0}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl text-sm font-medium transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
+                            style={{
+                                color: '#c9a03a',
+                                border: '1px solid rgba(201,160,58,0.25)',
+                            }}
+                            onMouseEnter={e => {
+                                if (timeEntries.length > 0) {
+                                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,160,58,0.5)';
+                                    (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(201,160,58,0.05)';
+                                }
+                            }}
+                            onMouseLeave={e => {
+                                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,160,58,0.25)';
+                                (e.currentTarget as HTMLElement).style.backgroundColor = '';
+                            }}
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download Pay Report
+                        </button>
                     </div>
 
-                    <div className="lg:col-span-2">
-                        <TimeLog timeEntries={timeEntries} profile={profile} />
+                    {/* ── Time Log ── */}
+                    <div className="flex-1 min-w-0">
+                        <TimeLog
+                            timeEntries={timeEntries}
+                            profile={profile}
+                            onDeleteEntry={handleDeleteEntry}
+                        />
                     </div>
                 </div>
             </main>

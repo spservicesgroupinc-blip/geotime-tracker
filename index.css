@@ -1,49 +1,97 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
+:root {
+  --gold: #c9a03a;
+  --gold-bright: #dfc05e;
+  --crimson: #b84f4f;
+  --crimson-glow: rgba(184, 79, 79, 0.4);
+  --gold-glow: rgba(201, 160, 58, 0.25);
+}
+
 body {
-  font-family: 'DM Sans', system-ui, sans-serif;
-  background-color: #090c17;
-  color: #e2e4ee;
+  font-family: 'Outfit', system-ui, sans-serif;
+  background-color: #050505;
+  color: #e8e4d8;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-.font-display {
-  font-family: 'Playfair Display', Georgia, serif;
-}
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #0d0d0d; }
+::-webkit-scrollbar-thumb { background: #2e2e2e; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #3d3d3d; }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-::-webkit-scrollbar-track {
-  background: #0f1222;
-}
-::-webkit-scrollbar-thumb {
-  background: #1d2140;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #252a50;
-}
-
-/* Remove number input spinners */
+/* ─── Number input ─── */
 input[type='number']::-webkit-inner-spin-button,
-input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type='number'] { -moz-appearance: textfield; }
+
+/* ─── Select option ─── */
+select option { background-color: #141414; color: #e8e4d8; }
+
+/* ─── Clock-out pulse ring ─── */
+@keyframes clock-pulse {
+  0%   { box-shadow: 0 0 0 0 var(--crimson-glow); }
+  70%  { box-shadow: 0 0 0 14px rgba(184, 79, 79, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(184, 79, 79, 0); }
 }
-input[type='number'] {
-  -moz-appearance: textfield;
+.clock-out-pulse {
+  animation: clock-pulse 2.2s ease-out infinite;
 }
 
-/* Select option background fix for dark theme */
-select option {
-  background-color: #161930;
-  color: #e2e4ee;
+/* ─── Clock-in golden glow ─── */
+@keyframes gold-pulse {
+  0%   { box-shadow: 0 0 0 0 var(--gold-glow); }
+  70%  { box-shadow: 0 0 0 12px rgba(201, 160, 58, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(201, 160, 58, 0); }
+}
+.clock-in-pulse {
+  animation: gold-pulse 2.5s ease-out infinite;
+}
+
+/* ─── Entry fade-in ─── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up {
+  animation: fade-up 0.25s ease-out both;
+}
+
+/* ─── Elapsed tick ─── */
+@keyframes digit-tick {
+  0%, 85% { opacity: 1; }
+  90% { opacity: 0.65; }
+  100% { opacity: 1; }
+}
+.elapsed-tick {
+  animation: digit-tick 1s linear infinite;
+}
+
+/* ─── Subtle top gradient line ─── */
+.gold-line {
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(201,160,58,0.6), transparent);
+}
+
+/* ─── Noise texture overlay ─── */
+.noise-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0.4;
+}
+
+/* ─── Focus ring reset ─── */
+*:focus-visible {
+  outline: 1.5px solid rgba(201,160,58,0.5);
+  outline-offset: 2px;
 }

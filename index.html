@@ -7,19 +7,22 @@
     <title>GeoTime Tracker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: {
-              navy: {
-                950: '#090c17',
-                900: '#0f1222',
-                800: '#161930',
-                700: '#1d2140',
-                600: '#252a50',
-                500: '#333a68',
+              void: {
+                950: '#050505',
+                900: '#0d0d0d',
+                800: '#141414',
+                700: '#1c1c1c',
+                600: '#242424',
+                500: '#2e2e2e',
+                400: '#3d3d3d',
+                300: '#555555',
+                200: '#777777',
               },
               gold: {
                 300: '#f0d98a',
@@ -27,29 +30,32 @@
                 500: '#c9a03a',
                 600: '#a8822a',
                 700: '#806219',
-                900: '#1c1307',
               },
               crimson: {
                 400: '#d46a6a',
                 500: '#b84f4f',
                 600: '#943838',
-                900: '#1c0909',
               },
-              steel: {
-                300: '#9ab8e0',
-                400: '#7aa3d4',
-                500: '#5585b5',
+              cream: {
+                100: '#f5f0e8',
+                200: '#e8e4d8',
+                300: '#d4cfc4',
+                400: '#b5b0a4',
+                500: '#857f6f',
+                600: '#5a5549',
+                700: '#3a3530',
               }
             },
             fontFamily: {
-              display: ['Playfair Display', 'Georgia', 'serif'],
-              sans: ['DM Sans', 'system-ui', 'sans-serif'],
+              display: ['Bebas Neue', 'sans-serif'],
+              sans: ['Outfit', 'system-ui', 'sans-serif'],
+              mono: ['JetBrains Mono', 'Menlo', 'monospace'],
             }
           }
         }
       }
-    <\/script>
-    <script src="https://cdn.tailwindcss.com"><\/script>
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script type="importmap">
 {
   "imports": {
@@ -60,11 +66,11 @@
     "jspdf-autotable": "https://aistudiocdn.com/jspdf-autotable@^5.0.2"
   }
 }
-<\/script>
+    </script>
     <link rel="stylesheet" href="/index.css">
   </head>
-  <body class="bg-navy-950 font-sans">
+  <body class="bg-void-950 font-sans">
     <div id="root"></div>
-    <script type="module" src="/index.tsx"><\/script>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
