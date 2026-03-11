@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { UserProfile, TimeEntry, Coordinates } from './types';
 import useLocalStorage from './hooks/useLocalStorage';
@@ -9,13 +8,19 @@ import { generatePayReport } from './services/pdfService';
 
 const ClockIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
 );
 
 const TrashIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+);
+
+const DownloadIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
     </svg>
 );
 
@@ -23,8 +28,7 @@ const App: React.FC = () => {
     const [profile, setProfile] = useLocalStorage<UserProfile | null>('user-profile', null);
     const [timeEntries, setTimeEntries] = useLocalStorage<TimeEntry[]>('time-entries', []);
     const [projects, setProjects] = useLocalStorage<string[]>('projects', ['General']);
-    
-    // UI State
+
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [newProjectName, setNewProjectName] = useState('');
@@ -46,21 +50,15 @@ const App: React.FC = () => {
         setError(null);
         try {
             const location: Coordinates = await getCurrentPosition();
-
             if (isClockedIn) {
-                // Clocking out
                 const lastEntry = timeEntries[timeEntries.length - 1];
                 const updatedEntry: TimeEntry = {
                     ...lastEntry,
                     clockOut: new Date().toISOString(),
                     clockOutLocation: location,
                 };
-                setTimeEntries([
-                    ...timeEntries.slice(0, timeEntries.length - 1),
-                    updatedEntry
-                ]);
+                setTimeEntries([...timeEntries.slice(0, timeEntries.length - 1), updatedEntry]);
             } else {
-                // Clocking in
                 const newEntry: TimeEntry = {
                     id: new Date().toISOString(),
                     projectName: selectedProject,
@@ -78,52 +76,29 @@ const App: React.FC = () => {
 
     const handleSwitchJob = async () => {
         if (!isClockedIn || selectedProject === currentClockedInProject) return;
-
-        if (!window.confirm(`Switch from "${currentClockedInProject}" to "${selectedProject}"? This will clock you out and back in immediately.`)) {
-            return;
-        }
-
+        if (!window.confirm(`Switch from "${currentClockedInProject}" to "${selectedProject}"? This will clock you out and back in immediately.`)) return;
         setIsLoading(true);
         setError(null);
         try {
             const location: Coordinates = await getCurrentPosition();
             const now = new Date().toISOString();
-
-            // 1. Clock out of current
             const lastEntry = timeEntries[timeEntries.length - 1];
-            const closedEntry: TimeEntry = {
-                ...lastEntry,
-                clockOut: now,
-                clockOutLocation: location,
-            };
-
-            // 2. Clock in to new
-            const newEntry: TimeEntry = {
-                id: now, // using timestamp as ID
-                projectName: selectedProject,
-                clockIn: now,
-                clockInLocation: location,
-            };
-
-            setTimeEntries([
-                ...timeEntries.slice(0, timeEntries.length - 1),
-                closedEntry,
-                newEntry
-            ]);
-
+            const closedEntry: TimeEntry = { ...lastEntry, clockOut: now, clockOutLocation: location };
+            const newEntry: TimeEntry = { id: now, projectName: selectedProject, clockIn: now, clockInLocation: location };
+            setTimeEntries([...timeEntries.slice(0, timeEntries.length - 1), closedEntry, newEntry]);
         } catch (err: any) {
             setError(err.message || 'Failed to switch job.');
         } finally {
             setIsLoading(false);
         }
     };
-    
+
     const handleResetProfile = () => {
-        if(window.confirm("Are you sure you want to reset your profile? This will clear all your time entries.")) {
+        if (window.confirm('Reset your profile? All time entries will be cleared.')) {
             setProfile(null);
             setTimeEntries([]);
         }
-    }
+    };
 
     const handleAddProject = (e: React.FormEvent) => {
         e.preventDefault();
@@ -131,20 +106,16 @@ const App: React.FC = () => {
         if (trimmed && !projects.includes(trimmed)) {
             setProjects([...projects, trimmed]);
             setNewProjectName('');
-            // If it's the only project, select it
             if (projects.length === 0) setSelectedProject(trimmed);
         }
     };
 
     const handleDeleteProject = (proj: string) => {
-        if (window.confirm(`Delete project "${proj}"? Past time entries will keep this name.`)) {
+        if (window.confirm(`Delete project "${proj}"? Past entries will retain this name.`)) {
             const updated = projects.filter(p => p !== proj);
             setProjects(updated);
-            if (selectedProject === proj && updated.length > 0) {
-                setSelectedProject(updated[0]);
-            } else if (selectedProject === proj) {
-                setSelectedProject('General');
-            }
+            if (selectedProject === proj && updated.length > 0) setSelectedProject(updated[0]);
+            else if (selectedProject === proj) setSelectedProject('General');
         }
     };
 
@@ -152,110 +123,130 @@ const App: React.FC = () => {
         return <ProfileSetup onProfileSave={setProfile} />;
     }
 
-    const clockInButtonClasses = "w-full text-white bg-green-600 hover:bg-green-700 focus:ring-green-500";
-    const clockOutButtonClasses = "w-full text-white bg-red-600 hover:bg-red-700 focus:ring-red-500";
-    const switchJobButtonClasses = "w-full mt-2 text-indigo-700 bg-indigo-100 hover:bg-indigo-200 border border-indigo-200";
-    
     return (
-        <div className="min-h-screen text-gray-800 bg-slate-100">
-            <header className="p-4 text-white bg-slate-800 shadow-md">
-                <div className="container flex items-center justify-between mx-auto">
-                    <h1 className="text-2xl font-bold">GeoTime Tracker</h1>
-                    <div className="text-right">
-                        <p className="font-semibold">{profile.name}</p>
-                        <button onClick={handleResetProfile} className="text-xs text-slate-300 hover:underline">
+        <div className="min-h-screen bg-navy-950 text-slate-200">
+            <header className="bg-navy-900 border-b border-navy-700 px-4 py-4 shadow-lg">
+                <div className="container mx-auto flex items-center justify-between max-w-6xl">
+                    <h1 className="font-display text-2xl font-bold text-gold-400 tracking-wide">
+                        GeoTime Tracker
+                    </h1>
+                    <div className="flex items-center gap-4">
+                        <span className="text-sm font-medium text-slate-300">{profile.name}</span>
+                        <span className="text-slate-700 select-none">|</span>
+                        <button
+                            onClick={handleResetProfile}
+                            className="text-xs text-slate-500 hover:text-gold-400 transition-colors duration-200 tracking-widest uppercase"
+                        >
                             Switch Profile
                         </button>
                     </div>
                 </div>
             </header>
-            
-            <main className="container p-4 mx-auto md:p-6">
+
+            <main className="container mx-auto p-4 md:p-6 max-w-6xl">
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    <div className="space-y-6 lg:col-span-1">
-                        
+                    <div className="space-y-5 lg:col-span-1">
+
                         {/* Time Clock Card */}
-                        <div className="p-6 bg-white rounded-lg shadow-md">
-                            <h2 className="mb-4 text-xl font-bold text-gray-800">Time Clock</h2>
-                            
-                            {/* Project Selector */}
-                            <div className="mb-4">
-                                <label className="block mb-1 text-sm font-medium text-gray-700">
+                        <div className="bg-navy-900 border border-navy-700 rounded-xl p-6 shadow-xl">
+                            <h2 className="font-display text-lg font-semibold text-gold-400 mb-5 tracking-wide">
+                                Time Clock
+                            </h2>
+
+                            <div className="mb-5">
+                                <label className="block text-xs font-medium text-slate-500 uppercase tracking-widest mb-2">
                                     {isClockedIn ? 'Switch Project' : 'Select Project'}
                                 </label>
-                                <select
-                                    value={selectedProject}
-                                    onChange={(e) => setSelectedProject(e.target.value)}
-                                    className="block w-full px-3 py-2 text-base border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border"
-                                >
-                                    {projects.map(p => (
-                                        <option key={p} value={p}>{p}</option>
-                                    ))}
-                                </select>
+                                <div className="relative">
+                                    <select
+                                        value={selectedProject}
+                                        onChange={(e) => setSelectedProject(e.target.value)}
+                                        className="w-full px-3 py-2.5 bg-navy-800 border border-navy-700 text-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gold-500 focus:border-gold-500 transition-colors cursor-pointer appearance-none pr-8"
+                                    >
+                                        {projects.map(p => (
+                                            <option key={p} value={p} style={{ backgroundColor: '#161930' }}>{p}</option>
+                                        ))}
+                                    </select>
+                                    <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
                             </div>
 
                             <button
                                 onClick={handleClockToggle}
                                 disabled={isLoading}
-                                className={`flex items-center justify-center px-6 py-3 text-lg font-semibold rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-wait ${
-                                    isClockedIn ? clockOutButtonClasses : clockInButtonClasses
+                                className={`w-full flex items-center justify-center px-6 py-3.5 text-base font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-navy-900 disabled:opacity-50 disabled:cursor-wait ${
+                                    isClockedIn
+                                        ? 'bg-crimson-500 hover:bg-crimson-400 text-white focus:ring-crimson-500'
+                                        : 'bg-gold-500 hover:bg-gold-400 text-navy-950 focus:ring-gold-500'
                                 }`}
                             >
-                                <ClockIcon/>
-                                {isLoading ? 'Getting Location...' : (isClockedIn ? 'Clock Out' : 'Clock In')}
+                                <ClockIcon />
+                                {isLoading ? 'Locating...' : (isClockedIn ? 'Clock Out' : 'Clock In')}
                             </button>
 
-                            {/* Switch Job Action */}
                             {isClockedIn && selectedProject !== currentClockedInProject && (
                                 <button
                                     onClick={handleSwitchJob}
                                     disabled={isLoading}
-                                    className={`flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md shadow-sm transition-colors ${switchJobButtonClasses}`}
+                                    className="w-full mt-3 flex items-center justify-center px-4 py-2.5 text-sm font-medium text-steel-400 border border-steel-500/40 rounded-lg hover:bg-navy-800 hover:border-steel-400 transition-all duration-200 disabled:opacity-50"
                                 >
-                                    Switch to "{selectedProject}"
+                                    Switch to &quot;{selectedProject}&quot;
                                 </button>
                             )}
 
                             {isClockedIn && (
-                                <div className="mt-4 p-3 bg-blue-50 rounded-md border border-blue-100">
-                                    <p className="text-sm font-medium text-blue-800">Current Job: {currentClockedInProject}</p>
-                                    <p className="text-xs text-blue-600 animate-pulse mt-1">
-                                        Clocked in since {new Date(timeEntries[timeEntries.length-1].clockIn).toLocaleTimeString()}
+                                <div className="mt-4 p-3.5 rounded-lg border" style={{ backgroundColor: 'rgba(28,19,7,0.6)', borderColor: 'rgba(201,160,58,0.2)' }}>
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-gold-400 animate-pulse flex-shrink-0"></span>
+                                        <p className="text-sm font-medium text-gold-300">{currentClockedInProject}</p>
+                                    </div>
+                                    <p className="text-xs text-slate-600 mt-1 ml-4">
+                                        Since {new Date(timeEntries[timeEntries.length - 1].clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </p>
                                 </div>
                             )}
-                            
-                            {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+
+                            {error && (
+                                <div className="mt-3 px-3 py-2 rounded-lg border" style={{ backgroundColor: 'rgba(28,9,9,0.6)', borderColor: 'rgba(184,79,79,0.25)' }}>
+                                    <p className="text-sm text-crimson-400">{error}</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Project Management */}
-                        <div className="p-6 bg-white rounded-lg shadow-md">
-                            <h2 className="mb-4 text-xl font-bold text-gray-800">Manage Projects</h2>
+                        <div className="bg-navy-900 border border-navy-700 rounded-xl p-6 shadow-xl">
+                            <h2 className="font-display text-lg font-semibold text-gold-400 mb-5 tracking-wide">
+                                Projects
+                            </h2>
                             <form onSubmit={handleAddProject} className="flex gap-2 mb-4">
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     value={newProjectName}
                                     onChange={(e) => setNewProjectName(e.target.value)}
-                                    placeholder="New Project Name"
-                                    className="flex-1 min-w-0 block w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    placeholder="New project name"
+                                    className="flex-1 min-w-0 px-3 py-2 bg-navy-800 border border-navy-700 text-slate-200 placeholder-slate-600 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gold-500 focus:border-gold-500 transition-colors"
                                 />
-                                <button 
+                                <button
                                     type="submit"
                                     disabled={!newProjectName.trim()}
-                                    className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-slate-600 border border-transparent rounded-md shadow-sm hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 disabled:opacity-50"
+                                    className="px-4 py-2 text-sm font-medium text-slate-300 bg-navy-700 border border-navy-600 rounded-lg hover:bg-navy-600 hover:border-navy-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-gold-500"
                                 >
                                     Add
                                 </button>
                             </form>
-                            <ul className="divide-y divide-gray-200 max-h-48 overflow-y-auto">
+                            <ul className="divide-y divide-navy-700 max-h-48 overflow-y-auto">
                                 {projects.map(proj => (
-                                    <li key={proj} className="py-2 flex justify-between items-center">
-                                        <span className="text-sm text-gray-700">{proj}</span>
+                                    <li key={proj} className="py-2.5 flex justify-between items-center group">
+                                        <span className={`text-sm transition-colors ${selectedProject === proj ? 'text-gold-400 font-medium' : 'text-slate-400'}`}>
+                                            {proj}
+                                        </span>
                                         {projects.length > 1 && (
-                                            <button 
+                                            <button
                                                 onClick={() => handleDeleteProject(proj)}
-                                                className="text-red-400 hover:text-red-600 p-1"
-                                                title="Delete Project"
+                                                className="text-navy-600 hover:text-crimson-400 p-1 opacity-0 group-hover:opacity-100 transition-all duration-150"
+                                                title="Delete project"
                                             >
                                                 <TrashIcon />
                                             </button>
@@ -266,20 +257,26 @@ const App: React.FC = () => {
                         </div>
 
                         {/* Reports */}
-                        <div className="p-6 bg-white rounded-lg shadow-md">
-                            <h2 className="mb-4 text-xl font-bold text-gray-800">Reports</h2>
+                        <div className="bg-navy-900 border border-navy-700 rounded-xl p-6 shadow-xl">
+                            <h2 className="font-display text-lg font-semibold text-gold-400 mb-5 tracking-wide">
+                                Reports
+                            </h2>
                             <button
                                 onClick={() => generatePayReport(profile, timeEntries)}
                                 disabled={timeEntries.length === 0}
-                                className="w-full px-4 py-2 font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-medium text-gold-400 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-gold-500 disabled:opacity-30 disabled:cursor-not-allowed hover:text-gold-300"
+                                style={{ borderColor: 'rgba(201,160,58,0.35)' }}
+                                onMouseEnter={(e) => { if (timeEntries.length > 0) (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(28,19,7,0.5)'; }}
+                                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = ''; }}
                             >
-                                Download Pay Report (PDF)
+                                <DownloadIcon />
+                                Download Pay Report
                             </button>
                         </div>
                     </div>
-                    
+
                     <div className="lg:col-span-2">
-                       <TimeLog timeEntries={timeEntries} profile={profile} />
+                        <TimeLog timeEntries={timeEntries} profile={profile} />
                     </div>
                 </div>
             </main>

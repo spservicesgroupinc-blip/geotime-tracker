@@ -19,7 +19,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onProfileSave }) => {
       return;
     }
     if (isNaN(wage) || wage <= 0) {
-      setError('Please enter a valid positive number for the hourly wage.');
+      setError('Please enter a valid hourly rate.');
       return;
     }
     setError('');
@@ -27,59 +27,94 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ onProfileSave }) => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
-        <div>
-          <h2 className="text-3xl font-extrabold text-center text-gray-900">
-            Welcome to GeoTime Tracker
-          </h2>
-          <p className="mt-2 text-sm text-center text-gray-600">
-            Let's set up your profile to get started.
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4 rounded-md shadow-sm">
-            <div>
-              <label htmlFor="name" className="sr-only">Full Name</label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                required
-                className="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Full Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="hourly-wage" className="sr-only">Hourly Wage ($)</label>
-              <input
-                id="hourly-wage"
-                name="hourly-wage"
-                type="number"
-                required
-                className="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Hourly Wage ($)"
-                value={hourlyWage}
-                onChange={(e) => setHourlyWage(e.target.value)}
-                min="0.01"
-                step="0.01"
-              />
-            </div>
+    <div className="flex items-center justify-center min-h-screen bg-navy-950 px-4" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+      {/* Ambient background glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div style={{ position: 'absolute', top: '20%', left: '30%', width: '480px', height: '480px', background: 'radial-gradient(circle, rgba(201,160,58,0.05) 0%, transparent 70%)', borderRadius: '50%' }}></div>
+        <div style={{ position: 'absolute', bottom: '20%', right: '25%', width: '360px', height: '360px', background: 'radial-gradient(circle, rgba(85,133,181,0.04) 0%, transparent 70%)', borderRadius: '50%' }}></div>
+      </div>
+
+      <div className="relative w-full max-w-sm">
+        {/* Top decorative rule */}
+        <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(201,160,58,0.5), transparent)', marginBottom: '2rem' }}></div>
+
+        <div className="bg-navy-900 border border-navy-700 rounded-2xl p-8 shadow-2xl">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif" }} className="text-3xl font-bold text-gold-400 mb-2">
+              GeoTime Tracker
+            </h1>
+            <p className="text-sm text-slate-500 tracking-wide">
+              Set up your profile to begin
+            </p>
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Name field */}
+            <div>
+              <label htmlFor="name" className="block text-xs font-medium text-slate-500 uppercase tracking-widest mb-2">
+                Full Name
+              </label>
+              <input
+                id="name"
+                type="text"
+                required
+                className="w-full px-4 py-3 rounded-lg text-sm text-slate-200 placeholder-slate-600 focus:outline-none transition-colors"
+                style={{ backgroundColor: '#161930', border: '1px solid #1d2140' }}
+                placeholder="Your full name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(201,160,58,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 1px rgba(201,160,58,0.2)'; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = '#1d2140'; e.currentTarget.style.boxShadow = 'none'; }}
+              />
+            </div>
 
-          <div>
+            {/* Hourly rate field */}
+            <div>
+              <label htmlFor="hourly-wage" className="block text-xs font-medium text-slate-500 uppercase tracking-widest mb-2">
+                Hourly Rate
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm select-none">$</span>
+                <input
+                  id="hourly-wage"
+                  type="number"
+                  required
+                  className="w-full pl-8 pr-4 py-3 rounded-lg text-sm text-slate-200 placeholder-slate-600 focus:outline-none transition-colors"
+                  style={{ backgroundColor: '#161930', border: '1px solid #1d2140' }}
+                  placeholder="0.00"
+                  value={hourlyWage}
+                  onChange={(e) => setHourlyWage(e.target.value)}
+                  min="0.01"
+                  step="0.01"
+                  onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(201,160,58,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 1px rgba(201,160,58,0.2)'; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = '#1d2140'; e.currentTarget.style.boxShadow = 'none'; }}
+                />
+              </div>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div className="px-4 py-2.5 rounded-lg text-sm text-crimson-400" style={{ backgroundColor: 'rgba(28,9,9,0.7)', border: '1px solid rgba(184,79,79,0.25)' }}>
+                {error}
+              </div>
+            )}
+
+            {/* Submit */}
             <button
               type="submit"
-              className="relative flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md group hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="w-full py-3.5 text-sm font-semibold rounded-lg transition-all duration-200 tracking-wide focus:outline-none"
+              style={{ backgroundColor: '#c9a03a', color: '#090c17' }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#dfc05e'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#c9a03a'; }}
             >
               Save Profile
             </button>
-          </div>
-        </form>
+          </form>
+        </div>
+
+        {/* Bottom decorative rule */}
+        <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(201,160,58,0.5), transparent)', marginTop: '2rem' }}></div>
       </div>
     </div>
   );
