@@ -14,10 +14,7 @@ const LocationLink: React.FC<{ location?: { latitude: number; longitude: number 
             href={`https://www.google.com/maps/search/?api=1&query=${location.latitude},${location.longitude}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 transition-colors text-xs"
-            style={{ color: '#5a5549', textDecoration: 'none' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#c9a03a'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#5a5549'; }}
+            className="inline-flex items-center gap-1 transition-colors text-xs text-slate-400 hover:text-red-600"
         >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-3 h-3">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -68,12 +65,12 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
     };
 
     return (
-        <div className="bg-void-900 border border-void-700 rounded-2xl overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
             {/* Header */}
-            <div className="px-6 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid #242424' }}>
-                <h3 className="font-display text-2xl tracking-widest text-cream-200">TIME LOG</h3>
+            <div className="px-6 py-5 flex items-center justify-between border-b border-slate-100">
+                <h3 className="text-xl font-bold tracking-tight text-slate-900">Time Log</h3>
                 {sorted.length > 0 && (
-                    <span className="text-xs text-void-300 tabular-nums">
+                    <span className="text-xs text-slate-400 tabular-nums font-medium">
                         {sorted.length} {sorted.length === 1 ? 'entry' : 'entries'}
                     </span>
                 )}
@@ -82,17 +79,14 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
             {/* Empty state */}
             {sorted.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
-                    <div
-                        className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
-                        style={{ backgroundColor: '#1f1f1f', border: '1px solid #313131' }}
-                    >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1} className="w-8 h-8" style={{ color: '#4b4b4b' }}>
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5 bg-slate-50 border border-slate-200">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1} className="w-8 h-8 text-slate-300">
                             <circle cx="12" cy="12" r="9" />
                             <path strokeLinecap="round" d="M12 7v5l3 3" />
                         </svg>
                     </div>
-                    <p className="font-medium text-cream-500">No time entries yet</p>
-                    <p className="text-sm mt-1.5" style={{ color: '#4b4b4b' }}>
+                    <p className="font-medium text-slate-500">No time entries yet</p>
+                    <p className="text-sm mt-1.5 text-slate-400">
                         Select a project and clock in to start tracking.
                     </p>
                 </div>
@@ -105,19 +99,12 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
                         return (
                             <div key={date}>
                                 {/* Day header */}
-                                <div
-                                    className="px-6 py-3 flex items-center justify-between sticky top-14"
-                                    style={{
-                                        backgroundColor: '#171717',
-                                        borderBottom: '1px solid #282828',
-                                        borderTop: '1px solid #282828',
-                                    }}
-                                >
-                                    <span className="text-sm font-semibold text-cream-300">{date}</span>
+                                <div className="px-6 py-3 flex items-center justify-between sticky top-14 bg-slate-50 border-b border-slate-100 border-t border-t-slate-100">
+                                    <span className="text-sm font-semibold text-slate-700">{date}</span>
                                     {dayTotal > 0 && (
                                         <div className="flex items-center gap-4 text-xs">
-                                            <span className="font-mono text-cream-500">{dayTotal.toFixed(2)}h</span>
-                                            <span className="font-mono font-medium" style={{ color: '#c9a03a' }}>
+                                            <span className="font-mono text-slate-500">{dayTotal.toFixed(2)}h</span>
+                                            <span className="font-mono font-semibold text-green-600">
                                                 ${dayEarnings.toFixed(2)}
                                             </span>
                                         </div>
@@ -133,47 +120,25 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
                                     return (
                                         <div
                                             key={entry.id}
-                                            className="group px-6 py-4 fade-up transition-colors duration-100"
-                                            style={{
-                                                borderBottom: '1px solid #282828',
-                                                animationDelay: `${idx * 25}ms`,
-                                            }}
-                                            onMouseEnter={e => {
-                                                (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.015)';
-                                            }}
-                                            onMouseLeave={e => {
-                                                (e.currentTarget as HTMLElement).style.backgroundColor = '';
-                                            }}
+                                            className="group px-6 py-4 fade-up transition-colors duration-100 border-b border-slate-100 hover:bg-slate-50"
+                                            style={{ animationDelay: `${idx * 25}ms` }}
                                         >
                                             <div className="flex items-start gap-4">
                                                 {/* Status bar */}
                                                 <div
                                                     className="w-0.5 self-stretch rounded-full mt-0.5 flex-shrink-0"
-                                                    style={{ backgroundColor: active ? '#c9a03a' : '#3b3b3b' }}
+                                                    style={{ backgroundColor: active ? '#22c55e' : '#e2e8f0' }}
                                                 />
 
                                                 {/* Content */}
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 mb-2.5">
-                                                        <span
-                                                            className="text-xs font-medium px-2.5 py-0.5 rounded-md"
-                                                            style={{
-                                                                backgroundColor: '#1f1f1f',
-                                                                border: '1px solid #3b3b3b',
-                                                                color: '#857f6f',
-                                                            }}
-                                                        >
+                                                        <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-600">
                                                             {entry.projectName || 'General'}
                                                         </span>
                                                         {active && (
-                                                            <span
-                                                                className="flex items-center gap-1.5 text-xs font-medium"
-                                                                style={{ color: '#c9a03a' }}
-                                                            >
-                                                                <span
-                                                                    className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0"
-                                                                    style={{ backgroundColor: '#c9a03a' }}
-                                                                />
+                                                            <span className="flex items-center gap-1.5 text-xs font-semibold text-green-600">
+                                                                <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-green-500 flex-shrink-0" />
                                                                 Active
                                                             </span>
                                                         )}
@@ -181,13 +146,10 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
 
                                                     <div className="flex flex-wrap items-center gap-x-6 gap-y-1.5">
                                                         <div className="flex items-center gap-2">
-                                                            <span
-                                                                className="text-[10px] uppercase tracking-widest font-medium"
-                                                                style={{ color: '#4b4b4b', width: '16px' }}
-                                                            >
+                                                            <span className="text-[10px] uppercase tracking-widest font-semibold text-slate-300" style={{ width: '16px' }}>
                                                                 In
                                                             </span>
-                                                            <span className="font-mono text-sm text-cream-300">
+                                                            <span className="font-mono text-sm text-slate-700">
                                                                 {new Date(entry.clockIn).toLocaleTimeString([], {
                                                                     hour: '2-digit',
                                                                     minute: '2-digit',
@@ -196,15 +158,12 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
                                                             <LocationLink location={entry.clockInLocation} />
                                                         </div>
                                                         <div className="flex items-center gap-2">
-                                                            <span
-                                                                className="text-[10px] uppercase tracking-widest font-medium"
-                                                                style={{ color: '#4b4b4b', width: '16px' }}
-                                                            >
+                                                            <span className="text-[10px] uppercase tracking-widest font-semibold text-slate-300" style={{ width: '16px' }}>
                                                                 Out
                                                             </span>
                                                             {entry.clockOut ? (
                                                                 <>
-                                                                    <span className="font-mono text-sm text-cream-300">
+                                                                    <span className="font-mono text-sm text-slate-700">
                                                                         {new Date(entry.clockOut).toLocaleTimeString([], {
                                                                             hour: '2-digit',
                                                                             minute: '2-digit',
@@ -213,7 +172,7 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
                                                                     <LocationLink location={entry.clockOutLocation} />
                                                                 </>
                                                             ) : (
-                                                                <span style={{ color: '#3b3b3b' }}>—</span>
+                                                                <span className="text-slate-300">—</span>
                                                             )}
                                                         </div>
                                                     </div>
@@ -223,34 +182,25 @@ const TimeLog: React.FC<TimeLogProps> = ({ timeEntries, profile, onDeleteEntry }
                                                 <div className="text-right flex-shrink-0 pl-2">
                                                     {duration > 0 ? (
                                                         <>
-                                                            <div className="font-mono text-sm font-medium text-cream-300 tabular-nums">
+                                                            <div className="font-mono text-sm font-medium text-slate-700 tabular-nums">
                                                                 {duration.toFixed(2)}h
                                                             </div>
-                                                            <div
-                                                                className="font-mono text-sm font-medium tabular-nums"
-                                                                style={{ color: '#c9a03a' }}
-                                                            >
+                                                            <div className="font-mono text-sm font-semibold tabular-nums text-green-600">
                                                                 ${pay.toFixed(2)}
                                                             </div>
                                                         </>
                                                     ) : (
-                                                        <div className="text-xs italic" style={{ color: '#4b4b4b' }}>
+                                                        <div className="text-xs italic text-slate-400">
                                                             Active
                                                         </div>
                                                     )}
                                                     <button
                                                         onClick={() => handleDeleteClick(entry.id)}
-                                                        className="mt-2 text-xs px-2 py-0.5 rounded transition-all opacity-0 group-hover:opacity-100"
-                                                        style={
+                                                        className={`mt-2 text-xs px-2 py-0.5 rounded transition-all ${
                                                             confirmDeleteId === entry.id
-                                                                ? {
-                                                                      color: '#d46a6a',
-                                                                      backgroundColor: 'rgba(184,79,79,0.1)',
-                                                                      border: '1px solid rgba(184,79,79,0.2)',
-                                                                      opacity: 1,
-                                                                  }
-                                                                : { color: '#5a5549' }
-                                                        }
+                                                                ? 'opacity-100 text-red-600 bg-red-50 border border-red-200'
+                                                                : 'opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-600'
+                                                        }`}
                                                     >
                                                         {confirmDeleteId === entry.id ? 'Confirm?' : 'Delete'}
                                                     </button>

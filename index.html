@@ -2,74 +2,30 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>GeoTime Tracker</title>
+
+    <!-- PWA Meta -->
+    <meta name="theme-color" content="#dc2626" />
+    <meta name="description" content="GPS-stamped time tracking for construction employees." />
+
+    <!-- iOS PWA Meta -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="GeoTime" />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="/icon-192.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600&display=swap" rel="stylesheet">
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              void: {
-                950: '#0e0e0e',
-                900: '#171717',
-                800: '#1f1f1f',
-                700: '#282828',
-                600: '#313131',
-                500: '#3b3b3b',
-                400: '#4b4b4b',
-                300: '#666666',
-                200: '#888888',
-              },
-              gold: {
-                300: '#f0d98a',
-                400: '#dfc05e',
-                500: '#c9a03a',
-                600: '#a8822a',
-                700: '#806219',
-              },
-              crimson: {
-                400: '#d46a6a',
-                500: '#b84f4f',
-                600: '#943838',
-              },
-              cream: {
-                100: '#f5f0e8',
-                200: '#e8e4d8',
-                300: '#d4cfc4',
-                400: '#b5b0a4',
-                500: '#857f6f',
-                600: '#5a5549',
-                700: '#3a3530',
-              }
-            },
-            fontFamily: {
-              display: ['Bebas Neue', 'sans-serif'],
-              sans: ['Outfit', 'system-ui', 'sans-serif'],
-              mono: ['JetBrains Mono', 'Menlo', 'monospace'],
-            }
-          }
-        }
-      }
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "jspdf": "https://aistudiocdn.com/jspdf@^3.0.3",
-    "jspdf-autotable": "https://aistudiocdn.com/jspdf-autotable@^5.0.2"
-  }
-}
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="/index.css">
   </head>
-  <body class="bg-void-950 font-sans">
+  <body class="bg-slate-50 font-sans">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

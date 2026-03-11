@@ -1,12 +1,14 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { UserProfile, TimeEntry, Coordinates } from './types';
 import useLocalStorage from './hooks/useLocalStorage';
+import { useOnlineStatus } from './hooks/useOnlineStatus';
 import ProfileSetup from './components/ProfileSetup';
 import TimeLog from './components/TimeLog';
 import { getCurrentPosition } from './services/locationService';
 import { generatePayReport } from './services/pdfService';
 
 const App: React.FC = () => {
+    const isOnline = useOnlineStatus();
     const [profile, setProfile] = useLocalStorage<UserProfile | null>('user-profile', null);
     const [timeEntries, setTimeEntries] = useLocalStorage<TimeEntry[]>('time-entries', []);
     const [projects, setProjects] = useLocalStorage<string[]>('projects', ['General']);
@@ -153,31 +155,39 @@ const App: React.FC = () => {
     const dateDisplay = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
     return (
-        <div className="min-h-screen bg-void-950 text-cream-200">
+        <div className="min-h-screen bg-slate-50 text-slate-800">
+            {/* Offline Banner */}
+            {!isOnline && (
+                <div className="offline-banner bg-slate-800 text-white text-center text-xs font-medium py-1.5 px-4 sticky top-0 z-30">
+                    <span className="inline-flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" />
+                        You're offline — data is saved locally
+                    </span>
+                </div>
+            )}
             {/* Header */}
-            <header className="border-b border-void-700 bg-void-900/80 backdrop-blur-sm sticky top-0 z-20">
+            <header className="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
                 <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#c9a03a' }}>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4" strokeWidth={2.5} style={{ color: '#171717' }}>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-600">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4.5 h-4.5 text-white" strokeWidth={2.5}>
                                 <circle cx="12" cy="12" r="9" />
                                 <path strokeLinecap="round" d="M12 7v5l3 3" />
                             </svg>
                         </div>
-                        <span className="font-display text-xl tracking-widest text-cream-200">GEOTIME</span>
+                        <span className="text-lg font-bold tracking-wide text-slate-900">GeoTime</span>
                     </div>
                     <div className="flex items-center gap-3">
-                        <span className="text-sm text-cream-500">{profile.name}</span>
-                        <span className="text-void-400 select-none">·</span>
+                        <span className="text-sm font-medium text-slate-600">{profile.name}</span>
+                        <span className="text-slate-300 select-none">·</span>
                         <button
                             onClick={handleResetProfile}
-                            className="text-xs text-void-300 hover:text-cream-300 transition-colors tracking-widest uppercase"
+                            className="text-xs text-slate-400 hover:text-red-600 transition-colors font-medium"
                         >
                             Switch Profile
                         </button>
                     </div>
                 </div>
-                <div className="gold-line opacity-40" />
             </header>
 
             <main className="max-w-6xl mx-auto px-4 sm:px-5 py-6">
@@ -186,31 +196,25 @@ const App: React.FC = () => {
                     {/* ── Left Panel ── */}
                     <div className="md:w-80 flex-shrink-0 space-y-4">
 
-                        {/* Clock Card */}
-                        <div className="bg-void-900 border border-void-700 rounded-2xl overflow-hidden">
+                        {/* Clock Card — dark navy like the screenshot's top cards */}
+                        <div className="rounded-2xl overflow-hidden shadow-lg" style={{ backgroundColor: '#0f172a' }}>
 
                             {/* Status / Time display */}
-                            <div className="px-6 pt-6 pb-5 border-b border-void-700">
+                            <div className="px-6 pt-6 pb-5" style={{ borderBottom: '1px solid #1e293b' }}>
                                 {isClockedIn ? (
                                     <div>
                                         <div className="flex items-center gap-2 mb-4">
-                                            <span
-                                                className="w-2 h-2 rounded-full flex-shrink-0 animate-pulse"
-                                                style={{ backgroundColor: '#c9a03a' }}
-                                            />
-                                            <span className="text-xs font-medium tracking-widest uppercase" style={{ color: '#c9a03a' }}>
+                                            <span className="w-2 h-2 rounded-full flex-shrink-0 animate-pulse bg-green-500" />
+                                            <span className="text-xs font-semibold tracking-widest uppercase text-green-400">
                                                 Active — {currentClockedInProject}
                                             </span>
                                         </div>
-                                        <div
-                                            className="font-mono text-5xl font-semibold tracking-tight leading-none elapsed-tick"
-                                            style={{ color: '#e8e4d8' }}
-                                        >
+                                        <div className="font-mono text-5xl font-semibold tracking-tight leading-none text-white elapsed-tick">
                                             {elapsed}
                                         </div>
-                                        <div className="mt-2 text-sm" style={{ color: '#5a5549' }}>
+                                        <div className="mt-2 text-sm text-slate-400">
                                             Since{' '}
-                                            <span style={{ color: '#857f6f' }}>
+                                            <span className="text-slate-300">
                                                 {new Date(currentEntry!.clockIn).toLocaleTimeString([], {
                                                     hour: '2-digit',
                                                     minute: '2-digit',
@@ -221,22 +225,22 @@ const App: React.FC = () => {
                                 ) : (
                                     <div>
                                         <div className="flex items-center gap-2 mb-3">
-                                            <span className="w-2 h-2 rounded-full bg-void-500 flex-shrink-0" />
-                                            <span className="text-xs text-void-300 tracking-widest uppercase">
+                                            <span className="w-2 h-2 rounded-full bg-slate-500 flex-shrink-0" />
+                                            <span className="text-xs text-slate-400 tracking-widest uppercase font-medium">
                                                 Not clocked in
                                             </span>
                                         </div>
-                                        <div className="font-mono text-4xl font-medium text-cream-200 tracking-tight leading-none">
+                                        <div className="font-mono text-4xl font-medium text-white tracking-tight leading-none">
                                             {timeDisplay}
                                         </div>
-                                        <div className="mt-1.5 text-sm text-void-300">{dateDisplay}</div>
+                                        <div className="mt-1.5 text-sm text-slate-400">{dateDisplay}</div>
                                     </div>
                                 )}
                             </div>
 
                             {/* Project selector */}
-                            <div className="px-6 py-4 border-b border-void-700">
-                                <div className="text-[10px] text-void-300 uppercase tracking-widest mb-3 font-medium">
+                            <div className="px-6 py-4" style={{ borderBottom: '1px solid #1e293b' }}>
+                                <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-3 font-semibold">
                                     {isClockedIn ? 'Switch Project' : 'Select Project'}
                                 </div>
                                 <div className="flex flex-wrap gap-2">
@@ -246,25 +250,16 @@ const App: React.FC = () => {
                                             onClick={() => setSelectedProject(p)}
                                             className={`group relative px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-150 ${
                                                 selectedProject === p
-                                                    ? 'text-void-950'
-                                                    : 'bg-void-800 text-cream-500 hover:bg-void-700 hover:text-cream-300'
+                                                    ? 'bg-red-600 text-white'
+                                                    : 'text-slate-300 hover:text-white'
                                             }`}
-                                            style={selectedProject === p ? { backgroundColor: '#c9a03a' } : undefined}
+                                            style={selectedProject !== p ? { backgroundColor: '#1e293b' } : undefined}
                                         >
                                             {p}
                                             {projects.length > 1 && (
                                                 <span
                                                     onClick={(e) => { e.stopPropagation(); handleDeleteProject(p); }}
-                                                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full hidden group-hover:flex items-center justify-center text-[10px] cursor-pointer transition-colors"
-                                                    style={{ backgroundColor: '#4b4b4b', color: '#857f6f' }}
-                                                    onMouseEnter={e => {
-                                                        (e.currentTarget as HTMLElement).style.backgroundColor = '#b84f4f';
-                                                        (e.currentTarget as HTMLElement).style.color = '#f5f0e8';
-                                                    }}
-                                                    onMouseLeave={e => {
-                                                        (e.currentTarget as HTMLElement).style.backgroundColor = '#4b4b4b';
-                                                        (e.currentTarget as HTMLElement).style.color = '#857f6f';
-                                                    }}
+                                                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full hidden group-hover:flex items-center justify-center text-[10px] cursor-pointer transition-colors bg-slate-600 text-slate-300 hover:bg-red-500 hover:text-white"
                                                 >
                                                     ×
                                                 </span>
@@ -288,14 +283,13 @@ const App: React.FC = () => {
                                                     }
                                                 }}
                                                 placeholder="Project name"
-                                                className="px-3 py-1.5 rounded-full text-sm bg-void-800 text-cream-200 placeholder-void-300 focus:outline-none transition-colors w-32"
-                                                style={{ border: '1px solid rgba(201,160,58,0.4)' }}
+                                                className="px-3 py-1.5 rounded-full text-sm text-white placeholder-slate-500 focus:outline-none transition-colors w-32"
+                                                style={{ backgroundColor: '#1e293b', border: '1px solid rgba(220,38,38,0.4)' }}
                                             />
                                             <button
                                                 type="submit"
                                                 disabled={!newProjectName.trim()}
-                                                className="px-3 py-1.5 rounded-full text-xs font-semibold disabled:opacity-40 transition-opacity"
-                                                style={{ backgroundColor: '#c9a03a', color: '#171717' }}
+                                                className="px-3 py-1.5 rounded-full text-xs font-semibold disabled:opacity-40 transition-opacity bg-red-600 text-white"
                                             >
                                                 Add
                                             </button>
@@ -303,7 +297,7 @@ const App: React.FC = () => {
                                     ) : (
                                         <button
                                             onClick={() => setIsAddingProject(true)}
-                                            className="px-3.5 py-1.5 rounded-full text-sm text-void-300 border border-dashed border-void-500 hover:border-void-400 hover:text-cream-500 transition-all duration-150"
+                                            className="px-3.5 py-1.5 rounded-full text-sm text-slate-400 border border-dashed border-slate-600 hover:border-slate-400 hover:text-white transition-all duration-150"
                                         >
                                             + Add
                                         </button>
@@ -316,14 +310,9 @@ const App: React.FC = () => {
                                 <button
                                     onClick={handleClockToggle}
                                     disabled={isLoading}
-                                    className={`relative w-full py-5 rounded-xl font-display text-2xl tracking-widest transition-all duration-200 focus:outline-none disabled:opacity-60 ${
-                                        isClockedIn ? 'text-cream-200 clock-out-pulse' : 'clock-in-pulse'
+                                    className={`relative w-full py-5 rounded-xl text-lg font-bold tracking-wider transition-all duration-200 focus:outline-none disabled:opacity-60 ${
+                                        isClockedIn ? 'text-white clock-out-pulse bg-red-600 hover:bg-red-700' : 'clock-in-pulse bg-green-600 hover:bg-green-700 text-white'
                                     }`}
-                                    style={
-                                        isClockedIn
-                                            ? { backgroundColor: '#b84f4f' }
-                                            : { backgroundColor: '#c9a03a', color: '#171717' }
-                                    }
                                 >
                                     {isLoading ? (
                                         <span className="flex items-center justify-center gap-2">
@@ -339,55 +328,48 @@ const App: React.FC = () => {
                                     <button
                                         onClick={handleSwitchJob}
                                         disabled={isLoading}
-                                        className="w-full py-3 rounded-xl text-sm font-medium text-cream-400 border border-void-600 hover:border-void-400 hover:text-cream-200 transition-all duration-150 disabled:opacity-50"
+                                        className="w-full py-3 rounded-xl text-sm font-medium text-slate-300 border border-slate-600 hover:border-slate-400 hover:text-white transition-all duration-150 disabled:opacity-50"
                                     >
                                         Switch to &quot;{selectedProject}&quot;
                                     </button>
                                 )}
 
                                 {error && (
-                                    <div
-                                        className="px-4 py-3 rounded-xl text-sm"
-                                        style={{
-                                            backgroundColor: 'rgba(184,79,79,0.1)',
-                                            border: '1px solid rgba(184,79,79,0.25)',
-                                            color: '#d46a6a',
-                                        }}
-                                    >
+                                    <div className="px-4 py-3 rounded-xl text-sm bg-red-500/10 border border-red-500/25 text-red-400">
                                         {error}
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        {/* Earnings Summary */}
-                        <div className="bg-void-900 border border-void-700 rounded-2xl p-6">
-                            <div className="text-[10px] text-void-300 uppercase tracking-widest mb-4 font-medium">
+                        {/* Earnings Summary — white card */}
+                        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                            <div className="text-[10px] text-slate-400 uppercase tracking-widest mb-4 font-semibold">
                                 Earnings Summary
                             </div>
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                                 <div>
-                                    <div className="text-xs text-void-300 mb-1.5">Today</div>
-                                    <div className="font-mono text-2xl font-semibold text-cream-200 leading-none">
+                                    <div className="text-xs text-slate-400 mb-1.5">Today</div>
+                                    <div className="font-mono text-2xl font-semibold text-slate-900 leading-none">
                                         {stats.todayHours.toFixed(1)}
-                                        <span className="text-sm text-void-300 ml-1">h</span>
+                                        <span className="text-sm text-slate-400 ml-1">h</span>
                                     </div>
-                                    <div className="font-mono text-base font-medium mt-1" style={{ color: '#c9a03a' }}>
+                                    <div className="font-mono text-base font-semibold mt-1 text-green-600">
                                         ${stats.todayEarnings.toFixed(2)}
                                     </div>
                                 </div>
                                 <div>
-                                    <div className="text-xs text-void-300 mb-1.5">All Time</div>
-                                    <div className="font-mono text-2xl font-semibold text-cream-200 leading-none">
+                                    <div className="text-xs text-slate-400 mb-1.5">All Time</div>
+                                    <div className="font-mono text-2xl font-semibold text-slate-900 leading-none">
                                         {stats.totalHours.toFixed(1)}
-                                        <span className="text-sm text-void-300 ml-1">h</span>
+                                        <span className="text-sm text-slate-400 ml-1">h</span>
                                     </div>
-                                    <div className="font-mono text-base font-medium mt-1" style={{ color: '#c9a03a' }}>
+                                    <div className="font-mono text-base font-semibold mt-1 text-green-600">
                                         ${stats.totalEarnings.toFixed(2)}
                                     </div>
                                 </div>
                             </div>
-                            <div className="mt-4 pt-4 border-t border-void-700 text-xs text-void-300">
+                            <div className="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400">
                                 @ ${profile.hourlyWage.toFixed(2)} / hr
                             </div>
                         </div>
@@ -396,21 +378,7 @@ const App: React.FC = () => {
                         <button
                             onClick={() => generatePayReport(profile, timeEntries)}
                             disabled={timeEntries.length === 0}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl text-sm font-medium transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
-                            style={{
-                                color: '#c9a03a',
-                                border: '1px solid rgba(201,160,58,0.25)',
-                            }}
-                            onMouseEnter={e => {
-                                if (timeEntries.length > 0) {
-                                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,160,58,0.5)';
-                                    (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(201,160,58,0.05)';
-                                }
-                            }}
-                            onMouseLeave={e => {
-                                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,160,58,0.25)';
-                                (e.currentTarget as HTMLElement).style.backgroundColor = '';
-                            }}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed bg-red-600 text-white hover:bg-red-700"
                         >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-4 h-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />

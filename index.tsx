@@ -2,6 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { registerSW } from 'virtual:pwa-register';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -14,3 +15,13 @@ root.render(
     <App />
   </React.StrictMode>
 );
+
+// Register Service Worker for offline support
+registerSW({
+  onOfflineReady() {
+    console.log('[PWA] App ready to work offline');
+  },
+  onNeedRefresh() {
+    console.log('[PWA] New content available, reload for update');
+  },
+});
